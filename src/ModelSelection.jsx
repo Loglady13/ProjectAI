@@ -41,14 +41,40 @@ const ModelSelection = () => {
     prot: ''
   });
 
+  const [formDataBitcoin, setFormDataBitcoin] = useState({
+    date: ''
+  });
+
+  const [formDataCasa, setFormDataCasa] = useState({
+    structuretaxvaluedollarcnt: '',
+    calculatedfinishedsquarefeet: '',
+    lotsizesquarefeet: '',
+    bathroomcnt: '',
+    bedroomcnt: '',
+    yearbuilt: ''
+  });
+
+  const [formDataRossman, setFormDataRossman] = useState({
+    Store: '',
+    DayOfWeek: '',
+    Promo: '',
+    SchoolHoliday: '',
+    Year: '',
+    Month: '',
+    Day: '',
+    Customers: ''
+  });
+
   const [prediction, setPrediction] = useState(null); // Estado para la predicción
 
   const models = [
     { id: 1, name: 'Modelo Calidad Vino' },
     { id: 2, name: 'Modelo Precio Aguacate' },
     { id: 3, name: 'Modelo Precio Autos' },
-    { id: 4, name: 'Modelo Predictor Hepatitis C'}
-    
+    { id: 4, name: 'Modelo Predictor Hepatitis C' },
+    { id: 5, name: 'Modelo Predictor Precio del Bitcoin' },
+    { id: 6, name: 'Modelo Predictor Precio Casa' },
+    { id: 7, name: 'Modelo Predictor de las ventas de la compañia Rossman' }
   ];
 
   const handleModelSelection = (model) => {
@@ -63,7 +89,7 @@ const ModelSelection = () => {
     });
   };
 
-  const handleInputChangeAvocado = (e) =>{
+  const handleInputChangeAvocado = (e) => {
     setFormDataAvocado({
       ...formDataAvocado,
       [e.target.name]: e.target.value
@@ -77,31 +103,51 @@ const ModelSelection = () => {
     });
   };
 
-  const handleInputChangeHepatitis = (e) =>{
+  const handleInputChangeHepatitis = (e) => {
     setFormDataHepatitis({
       ...formDataHepatitis,
       [e.target.name]: e.target.value
     });
   };
 
+  const handleInputChangeBitcoin = (e) => {
+    setFormDataBitcoin({
+      ...formDataBitcoin,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleInputChangeCasa = (e) => {
+    setFormDataCasa({
+      ...formDataCasa,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleInputChangeRossman = (e) => {
+    setFormDataRossman({
+      ...formDataRossman,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const fetchAvocadoPrediction = async (total_volume, year, month, day, region) => {
     try {
-        const response = await fetch(`http://localhost:5000/aguacate_prediction?Total_Volume=${total_volume}&year=${year}&Month=${month}&Day=${day}&region=${region}`, {
-            params: {
-                total_volume: total_volume,
-                year: year,
-                month: month,
-                day: day,
-                region: region
-            }
-        });
-        const data = await response.json();
-        console.log("Prediction:", data); 
-        setPrediction(data.prediction); // Actualiza la predicción en el estado
+      const response = await fetch(`http://localhost:5000/aguacate_prediction?Total_Volume=${total_volume}&year=${year}&Month=${month}&Day=${day}&region=${region}`, {
+        params: {
+          total_volume: total_volume,
+          year: year,
+          month: month,
+          day: day,
+          region: region
+        }
+      });
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction); // Actualiza la predicción en el estado
     } catch (error) {
-        console.error("Error fetching Avocado prediction:", error);
-        setPrediction("Error en la predicción"); // Manejo de errores
+      console.error("Error fetching Avocado prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
     }
   };
 
@@ -120,26 +166,63 @@ const ModelSelection = () => {
     }
   };
 
-  const fetchCarsPrediction = async (year, presentPrice, kms_driven, fuel_type, seller_type, transmission,owner) =>{
-    try{
+  const fetchCarsPrediction = async (year, presentPrice, kms_driven, fuel_type, seller_type, transmission, owner) => {
+    try {
       const response = await fetch(`http://localhost:5000/cars_prediction?year=${year}&presentPrice=${presentPrice}&kms_driven=${kms_driven}&fuel_type=${fuel_type}&seller_type=${seller_type}&transmission=${transmission}&owner=${owner}`);
       const data = await response.json();
-      console.log("Prediction:", data); 
-      setPrediction(data.prediction); 
-    }catch (error){
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
       console.error("Error fetching Cars prediction:", error);
       setPrediction("Error en la predicción"); // Manejo de errores
     }
   }
 
-  const fetchHepatitisPrediction = async (alb, alp, alt, ast, bil, che, chol, crea, ggt, prot) =>{
-    try{
+  const fetchHepatitisPrediction = async (alb, alp, alt, ast, bil, che, chol, crea, ggt, prot) => {
+    try {
       const response = await fetch(`http://localhost:5000/hepatitis_prediction?alb=${alb}&alp=${alp}&alt=${alt}&ast=${ast}&bil=${bil}&che=${che}&chol=${chol}&crea=${crea}&ggt=${ggt}&prot=${prot}`)
       const data = await response.json();
-      console.log("Prediction:", data); 
-      setPrediction(data.prediction); 
-    } catch(error){
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
       console.error("Error fetching Hepatitis prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
+    }
+  }
+
+  const fetchBitcoinPrediction = async (date) => {
+    try {
+      const formattedDate = new Date(date).toISOString().split('T')[0];  // Convierte a 'YYYY-MM-DD'
+      const response = await fetch(`http://localhost:5000/bitcoin_prediction?date=${formattedDate}`)
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error("Error fetching Bitcoin prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
+    }
+  }
+
+  const fetchPrecioCasaPrediction = async (structuretaxvaluedollarcnt, calculatedfinishedsquarefeet, lotsizesquarefeet, bathroomcnt, bedroomcnt, yearbuilt) => {
+    try {
+      const response = await fetch(`http://localhost:5000/casa_prediction?structuretaxvaluedollarcnt=${structuretaxvaluedollarcnt}&calculatedfinishedsquarefeet=${calculatedfinishedsquarefeet}&lotsizesquarefeet=${lotsizesquarefeet}&bathroomcnt=${bathroomcnt}&bedroomcnt=${bedroomcnt}&yearbuilt=${yearbuilt}`);
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error("Error fetching Precio Casa prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
+    }
+  }
+
+  const fetchVentasRossmanPrediction = async (Store, DayOfWeek, Promo, SchoolHoliday, Year, Month, Day, Customers) => {
+    try {
+      const response = await fetch(`http://localhost:5000/rossman_prediction?Store=${Store}&DayOfWeek=${DayOfWeek}&Promo=${Promo}&SchoolHoliday=${SchoolHoliday}&Year=${Year}&Month=${Month}&Day=${Day}&Customers=${Customers}`);
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error("Error fetching Precio Casa prediction:", error);
       setPrediction("Error en la predicción"); // Manejo de errores
     }
   }
@@ -294,95 +377,95 @@ const ModelSelection = () => {
 
       {selectedModel?.name === 'Modelo Precio Autos' && (
         <form
-        onSubmit={(e) =>{
-          e.preventDefault();
-          console.log("Form data:", formDataCars);
-          fetchCarsPrediction(
-            formDataCars.year,
-            formDataCars.presentPrice,
-            formDataCars.kms_driven,
-            formDataCars.fuel_type,
-            formDataCars.seller_type,
-            formDataCars.transmission,
-            formDataCars.owner
-          )
-        }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formDataCars);
+            fetchCarsPrediction(
+              formDataCars.year,
+              formDataCars.presentPrice,
+              formDataCars.kms_driven,
+              formDataCars.fuel_type,
+              formDataCars.seller_type,
+              formDataCars.transmission,
+              formDataCars.owner
+            )
+          }}
         >
           <h2>Modelo predicción del precio de un auto</h2>
           <label>
             Year:
-            <input 
-            type="text" 
-            name='year'
-            value={formDataCars.year}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='year'
+              value={formDataCars.year}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
           <label>
             Present price:
-            <input 
-            type="text" 
-            name='presentPrice'
-            value={formDataCars.presentPrice}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='presentPrice'
+              value={formDataCars.presentPrice}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
           <label>
             Kms driven:
-            <input 
-            type="text" 
-            name='kms_driven'
-            value={formDataCars.kms_driven}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='kms_driven'
+              value={formDataCars.kms_driven}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
           <label>
             Fuel Type:
-            <input 
-            type="text" 
-            name='fuel_type'
-            value={formDataCars.fuel_type}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='fuel_type'
+              value={formDataCars.fuel_type}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
           <label>
             Seller Type:
-            <input 
-            type="text" 
-            name='seller_type'
-            value={formDataCars.seller_type}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='seller_type'
+              value={formDataCars.seller_type}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
           <label>
             Transmission:
-            <input 
-            type="text" 
-            name='transmission'
-            value={formDataCars.transmission}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='transmission'
+              value={formDataCars.transmission}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
           <label>
             Owner:
-            <input 
-            type="text" 
-            name='owner'
-            value={formDataCars.owner}
-            onChange={handleInputChangeCars}
-            required
+            <input
+              type="text"
+              name='owner'
+              value={formDataCars.owner}
+              onChange={handleInputChangeCars}
+              required
             />
           </label>
           <br />
@@ -390,142 +473,378 @@ const ModelSelection = () => {
         </form>
       )}
 
-    {selectedModel?.name === 'Modelo Predictor Hepatitis C' && (
-      <form
-      onSubmit={(e) =>{
-        e.preventDefault();
-        console.log("Form data:", formDataHepatitis);
-        fetchHepatitisPrediction(
-          
-          formDataHepatitis.alb,
-          formDataHepatitis.alp,
-          formDataHepatitis.alt,
-          formDataHepatitis.ast,
-          formDataHepatitis.bil,
-          formDataHepatitis.che,
-          formDataHepatitis.chol,
-          formDataHepatitis.crea,
-          formDataHepatitis.ggt,
-          formDataHepatitis.prot
-        )
-      }}
-      >
+      {selectedModel?.name === 'Modelo Predictor Hepatitis C' && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formDataHepatitis);
+            fetchHepatitisPrediction(
 
-        <h2>Modelo predicción de Hepatitis</h2>
-         
+              formDataHepatitis.alb,
+              formDataHepatitis.alp,
+              formDataHepatitis.alt,
+              formDataHepatitis.ast,
+              formDataHepatitis.bil,
+              formDataHepatitis.che,
+              formDataHepatitis.chol,
+              formDataHepatitis.crea,
+              formDataHepatitis.ggt,
+              formDataHepatitis.prot
+            )
+          }}
+        >
+
+          <h2>Modelo predicción de Hepatitis</h2>
+
           <label>
             ALB (Albúmina):
-            <input 
-            type="text" 
-            name='alb'
-            value={formDataHepatitis.alb}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='alb'
+              value={formDataHepatitis.alb}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             ALP (Fosfatasa Alcalina):
-            <input 
-            type="text" 
-            name='alp'
-            value={formDataHepatitis.alp}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='alp'
+              value={formDataHepatitis.alp}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             ALT (alanina aminotransferasa):
-            <input 
-            type="text" 
-            name='alt'
-            value={formDataHepatitis.alt}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='alt'
+              value={formDataHepatitis.alt}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             AST (Aspartato aminotransferasa):
-            <input 
-            type="text" 
-            name='ast'
-            value={formDataHepatitis.ast}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='ast'
+              value={formDataHepatitis.ast}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             BIL (Bilirrubina):
-            <input 
-            type="text" 
-            name='bil'
-            value={formDataHepatitis.bil}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='bil'
+              value={formDataHepatitis.bil}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             CHE (Colinesterasa):
-            <input 
-            type="text" 
-            name='che'
-            value={formDataHepatitis.che}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='che'
+              value={formDataHepatitis.che}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             CHOL (Colesterol):
-            <input 
-            type="text" 
-            name='chol'
-            value={formDataHepatitis.chol}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='chol'
+              value={formDataHepatitis.chol}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             CREA (Creatina):
-            <input 
-            type="text" 
-            name='crea'
-            value={formDataHepatitis.crea}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='crea'
+              value={formDataHepatitis.crea}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             GGT (gamma-glutamil):
-            <input 
-            type="text" 
-            name='ggt'
-            value={formDataHepatitis.ggt}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='ggt'
+              value={formDataHepatitis.ggt}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <label>
             PROT (Proteínas):
-            <input 
-            type="text" 
-            name='prot'
-            value={formDataHepatitis.prot}
-            onChange={handleInputChangeHepatitis}
-            required
+            <input
+              type="text"
+              name='prot'
+              value={formDataHepatitis.prot}
+              onChange={handleInputChangeHepatitis}
+              required
             />
           </label>
           <br />
           <button type='submit'>Enviar</button>
-      </form>
-    )}
+        </form>
+      )}
+
+
+      {selectedModel?.name === 'Modelo Predictor Precio del Bitcoin' && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formDataBitcoin);
+            fetchBitcoinPrediction(
+              formDataBitcoin.date,
+              formDataBitcoin.close
+            );
+          }}
+        >
+          <h2>Modelo de predicción del precio del bitcoin</h2>
+
+          <label>
+            Date:
+            <input
+              type="text"
+              name="date"
+              value={formDataBitcoin.date}
+              onChange={handleInputChangeBitcoin}
+              required
+            />
+          </label>
+          <br />
+
+          <button type="submit">Enviar</button>
+        </form>
+      )}
+
+      {selectedModel?.name === 'Modelo Predictor Precio Casa' && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formDataCasa);
+            fetchPrecioCasaPrediction(
+              formDataCasa.structuretaxvaluedollarcnt,
+              formDataCasa.calculatedfinishedsquarefeet,
+              formDataCasa.lotsizesquarefeet,
+              formDataCasa.bathroomcnt,
+              formDataCasa.bedroomcnt,
+              formDataCasa.yearbuilt
+            )
+          }}
+        >
+          <h2>Modelo predicción del precio de una casa</h2>
+          <label>
+            Valor fiscal de la estructura:
+            <input
+              type="text"
+              name='structuretaxvaluedollarcnt'
+              value={formDataCasa.structuretaxvaluedollarcnt}
+              onChange={handleInputChangeCasa}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Superficie total terminada:
+            <input
+              type="text"
+              name='calculatedfinishedsquarefeet'
+              value={formDataCasa.calculatedfinishedsquarefeet}
+              onChange={handleInputChangeCasa}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Tamaño del lote o terreno:
+            <input
+              type="text"
+              name='lotsizesquarefeet'
+              value={formDataCasa.lotsizesquarefeet}
+              onChange={handleInputChangeCasa}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Número de baños:
+            <input
+              type="text"
+              name='bathroomcnt'
+              value={formDataCasa.bathroomcnt}
+              onChange={handleInputChangeCasa}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Número de dormitorios:
+            <input
+              type="text"
+              name='bedroomcnt'
+              value={formDataCasa.bedroomcnt}
+              onChange={handleInputChangeCasa}
+              required
+            />
+          </label>
+          <br />
+          <label>
+            Año de construcción de la casa:
+            <input
+              type="text"
+              name='yearbuilt'
+              value={formDataCasa.yearbuilt}
+              onChange={handleInputChangeCasa}
+              required
+            />
+          </label>
+          <br />
+
+          <button type='submit'>Enviar</button>
+        </form>
+      )}
+
+      {selectedModel?.name === 'Modelo Predictor de las ventas de la compañia Rossman' && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formDataRossman);
+            fetchVentasRossmanPrediction(
+              formDataRossman.Store,
+              formDataRossman.DayOfWeek,
+              formDataRossman.Promo,
+              formDataRossman.SchoolHoliday,
+              formDataRossman.Year,
+              formDataRossman.Month,
+              formDataRossman.Day,
+              formDataRossman.Customers
+            );
+          }}
+        >
+          <h2>Modelo de predicción de las ventas de la compañia Rossman</h2>
+
+          <label>
+            Identificador de la tienda
+            <input
+              type="text"
+              name="Store"
+              value={formDataRossman.Store}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Día de la semana(1 = Domingo, 7 = Sábado):
+            <input
+              type="text"
+              name="DayOfWeek"
+              value={formDataRossman.DayOfWeek}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Hay promoción en ese día sí(1) o no(0):
+            <input
+              type="text"
+              name="Promo"
+              value={formDataRossman.Promo}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Hay feriada escolar en este día sí(1) o no(0):
+            <input
+              type="text"
+              name="SchoolHoliday"
+              value={formDataRossman.SchoolHoliday}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Año:
+            <input
+              type="text"
+              name="Year"
+              value={formDataRossman.Year}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Mes:
+            <input
+              type="text"
+              name="Month"
+              value={formDataRossman.Month}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Día:
+            <input
+              type="text"
+              name="Day"
+              value={formDataRossman.Day}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Número de clientes:
+            <input
+              type="text"
+              name="Customers"
+              value={formDataRossman.Customers}
+              onChange={handleInputChangeRossman}
+              required
+            />
+          </label>
+          <br />
+
+          <button type="submit">Enviar</button>
+        </form>
+      )}
 
       {/* Mostrar la predicción para el modelo seleccionado */}
       {prediction && (
@@ -534,7 +853,7 @@ const ModelSelection = () => {
         </div>
       )}
 
-      
+
     </div>
   )
 };

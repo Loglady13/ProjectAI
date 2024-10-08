@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import pickle
 import pandas as pd
@@ -10,7 +11,7 @@ class ModelLoading:
 
     @staticmethod
     def  load_models():
-        directory_path = r'..\modelos'
+        directory_path = r'.\modelos'
 
         loaded_models = {}
         for filename in os.listdir(directory_path):
@@ -99,6 +100,58 @@ class ModelLoading:
         except Exception as e:
             print(f"Error predicting with model 'hepatitis': {e}")
             return None
+        
+    def modelo_bitcoin(self, date):
+        try:
+            # Convertir la fecha a un índice que el modelo pueda entender
+            date_index = pd.date_range(start=date - timedelta(days=30), end=date)  # Asumiendo que usas los últimos 30 días para la predicción
+        
+            # Asegúrate de que el índice esté en el mismo formato que el modelo fue entrenado
+            input_data = self.modelos['bitcoin_model'].get_prediction(start=date_index[0], end=date_index[-1], dynamic=False)
+            pred_mean = input_data.predicted_mean
+        
+            # Devuelve el último valor predicho para la fecha solicitada
+            return pred_mean.iloc[-1]
+        except Exception as e:
+            print(f"Error predicting with model 'bitcoin_model': {e}")
+            return None    
+
+    def modelo_precio_casa(self, structuretaxvaluedollarcnt, calculatedfinishedsquarefeet, lotsizesquarefeet, bathroomcnt, bedroomcnt, yearbuilt):
+        try:
+            input_data = pd.DataFrame({
+                'structuretaxvaluedollarcnt': [structuretaxvaluedollarcnt],
+                'calculatedfinishedsquarefeet': [calculatedfinishedsquarefeet],
+                'lotsizesquarefeet': [lotsizesquarefeet],
+                'bathroomcnt': [bathroomcnt],
+                'bedroomcnt': [bedroomcnt],
+                'yearbuilt': [yearbuilt]
+            })
+            prediction = self.modelos['PrecioCasa_model'].predict(input_data)
+            # Devolver la predicción
+            return prediction[0]  # El precio promedio predicho
+        except Exception as e:
+            print(f"Error predicting with model 'Precio casa': {e}")
+            return None
+        
+    def modelo_ventas_rossman(self, Store, DayOfWeek, Promo, SchoolHoliday, Year, Month, Day, Customers):
+        try:
+            input_data = pd.DataFrame({
+                'Store': [Store],
+                'DayOfWeek': [DayOfWeek],
+                'Promo': [Promo],
+                'SchoolHoliday': [SchoolHoliday],
+                'Year': [Year],
+                'Month': [Month],
+                'Day': [Day],
+                'Customers': [Customers]
+            })
+            prediction = self.modelos['VentasRossman'].predict(input_data)
+            # Devolver la predicción
+            return prediction[0]  # El precio promedio predicho
+        except Exception as e:
+            print(f"Error predicting with model 'aguacate': {e}")
+            return None
+
 
 if __name__ == "__main__":
     model_loader = ModelLoading()
