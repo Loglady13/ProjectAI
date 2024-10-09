@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./App.css";
 
 const ModelSelection = () => {
   const [selectedModel, setSelectedModel] = useState(null);
@@ -409,7 +410,6 @@ const ModelSelection = () => {
       possibleModel = findRespectiveModel("aguacate");
     } else if (transcript.includes("vino")) {
       possibleModel = findRespectiveModel("vino");
-      handleModelSelection(possibleModel);
     } else if (transcript.includes("autos")) {
       possibleModel = findRespectiveModel("autos");
     } else if (transcript.includes("bitcoin")) {
@@ -486,7 +486,7 @@ const ModelSelection = () => {
   };
 
   return (
-    <div>
+    <div className="gradient-background">
       <h1>Selecciona un Modelo de IA</h1>
       <ul>
         {models.map((model) => (
@@ -499,9 +499,11 @@ const ModelSelection = () => {
       <button onClick={startRecordingHandler}>
         ¿En qué te puedo ayudar hoy?
       </button>
-      <p>
-        Texto reconocido: <span>{speech}</span>
-      </p>
+      {speech !== "" && (
+        <p>
+          Texto reconocido: <span>{speech}</span>
+        </p>
+      )}
 
       {/* Mostrar el formulario si el modelo "vino" está seleccionado */}
       {selectedModel?.name === "Modelo Calidad Vino" && (
