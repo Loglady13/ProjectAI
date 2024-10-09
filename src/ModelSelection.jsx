@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 const ModelSelection = () => {
@@ -90,6 +90,10 @@ const ModelSelection = () => {
 
   const [speech, setSpeech] = useState("");
 
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+
+  const [visible, setVisible] = useState(true);
+
   const models = [
     { id: 1, name: "Modelo Calidad Vino" },
     { id: 2, name: "Modelo Precio Aguacate" },
@@ -105,6 +109,28 @@ const ModelSelection = () => {
     { id: 9, name: "Modelo clasificador de accidente cerebro-vascular" },
     { id: 10, name: "Modelo Predictor de las acciones del mercado SP 500" },
   ];
+
+  const phrases = [
+    "¿Cuál será el precio del aguacate?",
+    "Quiero saber la tasa crímenes de Londres",
+    "Predice el precio del Bitcoin",
+    "¿Me ayudas con la calidad del vino?",
+    "Quisier saber si voy a tener un ACV...",
+    "¿Tendré Hepatitis C?",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false); // Ocultar la frase actual
+
+      setTimeout(() => {
+        setCurrentPhraseIndex((prevIndex) => (prevIndex + 1) % phrases.length); // Cambiar a la siguiente frase
+        setVisible(true); // Mostrar la nueva frase
+      }, 1700); // Esperar un segundo antes de cambiar la frase
+    }, 7000); // Cambiar frase cada 4 segundos
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleModelSelection = (model) => {
     setSelectedModel(model);
@@ -486,7 +512,7 @@ const ModelSelection = () => {
   };
 
   return (
-    <div className="gradient-background">
+    <div className="container-fluid gradient-background">
       <h1>Selecciona un Modelo de IA</h1>
       <ul>
         {models.map((model) => (
@@ -496,9 +522,12 @@ const ModelSelection = () => {
         ))}
       </ul>
 
-      <button onClick={startRecordingHandler}>
-        ¿En qué te puedo ayudar hoy?
-      </button>
+      <button onClick={startRecordingHandler}>Pulsa para hablar</button>
+
+      <label className={`fade-in-out ${visible ? "show" : ""}`}>
+        {phrases[currentPhraseIndex]}
+      </label>
+
       {speech !== "" && (
         <p>
           Texto reconocido: <span>{speech}</span>
