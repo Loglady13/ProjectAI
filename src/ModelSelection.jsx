@@ -64,6 +64,27 @@ const ModelSelection = () => {
     Customers: "",
   });
 
+  const [formLondonCrimes, setFormLondonCrimes] = useState({
+    date: "",
+  });
+
+  const [formStroke, setFormStroke] = useState({
+    gender: 0,
+    age: 0,
+    hypertension: 0,
+    heart_disease: 0,
+    ever_married: 0,
+    work_type: "",
+    Residence_type: "",
+    avg_glucose_level: 0.0,
+    bmi: 0.0,
+    smoking_status: "",
+  });
+
+  const [formDataStock, setFormDataStock] = useState({
+    date: "",
+  });
+
   const [prediction, setPrediction] = useState(null); // Estado para la predicción
 
   const [speech, setSpeech] = useState("");
@@ -76,6 +97,12 @@ const ModelSelection = () => {
     { id: 5, name: "Modelo Predictor Precio del Bitcoin" },
     { id: 6, name: "Modelo Predictor Precio Casa" },
     { id: 7, name: "Modelo Predictor de las ventas de la compañia Rossman" },
+    {
+      id: 8,
+      name: "Modelo Predictor de la cantidad de crímenes por día en Londres",
+    },
+    { id: 9, name: "Modelo clasificador de accidente cerebro-vascular" },
+    { id: 10, name: "Modelo Predictor de las acciones del mercado SP 500" },
   ];
 
   const handleModelSelection = (model) => {
@@ -128,6 +155,27 @@ const ModelSelection = () => {
   const handleInputChangeRossman = (e) => {
     setFormDataRossman({
       ...formDataRossman,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleInputChangeCrime = (e) => {
+    setFormLondonCrimes({
+      ...formLondonCrimes,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleInputChangeStocks = (e) => {
+    setFormDataStock({
+      ...formDataStock,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleInputChangeStroke = (e) => {
+    setFormStroke({
+      ...formStroke,
       [e.target.name]: e.target.value,
     });
   };
@@ -286,6 +334,59 @@ const ModelSelection = () => {
     }
   };
 
+  const fetchLondonCrimesPrediction = async (date) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/crimes_prediction?date=${date}`
+      );
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error("Error fetching London Crimes prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
+    }
+  };
+
+  const fetchStrokeClasifier = async (
+    gender,
+    age,
+    hypertension,
+    heart_disease,
+    ever_married,
+    work_type,
+    Residence_type,
+    avg_glucose_level,
+    bmi,
+    smoking_status
+  ) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/stroke_prediction?gender=${gender}&age=${age}&hypertension=${hypertension}&heart_disease=${heart_disease}&ever_married=${ever_married}&work_type=${work_type}&Residence_type=${Residence_type}&avg_glucose_level=${avg_glucose_level}&bmi=${bmi}&smoking_status=${smoking_status}`
+      );
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error("Error fetching London Crimes prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
+    }
+  };
+
+  const fetchStockValuePrediction = async (date) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/stockValue_prediction?date=${date}`
+      );
+      const data = await response.json();
+      console.log("Prediction:", data);
+      setPrediction(data.prediction);
+    } catch (error) {
+      console.error("Error fetching London Crimes prediction:", error);
+      setPrediction("Error en la predicción"); // Manejo de errores
+    }
+  };
+
   function findRespectiveModel(keyword) {
     for (let i = 0; i < models.length; i++) {
       if (models[i].name.toLowerCase().includes(keyword)) {
@@ -301,8 +402,7 @@ const ModelSelection = () => {
   recognition.continuous = false; // Continuar reconociendo tras pausas
   recognition.interimResults = false; // Mostrar solo resultados finales
 
-  recognition.onresult = function (event) {
-    const transcript = event.results[0][0].transcript;
+  function processRecording(transcript) {
     setSpeech(transcript);
     var possibleModel;
     if (transcript.includes("aguacate")) {
@@ -318,14 +418,46 @@ const ModelSelection = () => {
       possibleModel = findRespectiveModel("casa");
     } else if (
       transcript.includes("compañia") ||
-      transcript.includes("compañía")
+      transcript.includes("compañía") ||
+      transcript.includes("rosman") ||
+      transcript.includes("Rosman") ||
+      transcript.includes("Rossman")
     ) {
       possibleModel = findRespectiveModel("compañia");
+    } else if (
+      transcript.includes("crimenes") ||
+      transcript.includes("crímenes") ||
+      transcript.includes("Londres") ||
+      transcript.includes("London")
+    ) {
+      possibleModel = findRespectiveModel("crímenes");
+    } else if (
+      transcript.includes("accidente") ||
+      transcript.includes("cerebro") ||
+      transcript.includes("vascular") ||
+      transcript.includes("cerebro vascular") ||
+      transcript.includes("cerebrovascular")
+    ) {
+      possibleModel = findRespectiveModel("accidente");
+    } else if (
+      transcript.includes("acción") ||
+      transcript.includes("accion") ||
+      transcript.includes("acciones") ||
+      transcript.includes("mercado") ||
+      transcript.includes("s y p") ||
+      transcript.includes("S y P")
+    ) {
+      possibleModel = findRespectiveModel("mercado");
     } else {
       setSpeech("Lo siento, no te pude entender... Inténtalo de nuevo. :)");
       possibleModel = null;
     }
     handleModelSelection(possibleModel);
+  }
+
+  recognition.onresult = function (event) {
+    const transcript = event.results[0][0].transcript;
+    processRecording(transcript);
   };
 
   recognition.onerror = function (event) {
@@ -341,12 +473,12 @@ const ModelSelection = () => {
     recognition.start();
     console.log("Iniciando reconocimiento de voz...");
   }
-
+  /*
   function stopRecognition() {
     recognition.stop();
     console.log("Reconocimiento de voz detenido.");
   }
-
+  */
   const startRecordingHandler = () => {
     setSpeech("");
     setSelectedModel(null);
@@ -969,6 +1101,241 @@ const ModelSelection = () => {
           <br />
 
           <button type="submit">Enviar</button>
+        </form>
+      )}
+
+      {selectedModel?.name ===
+        "Modelo Predictor de la cantidad de crímenes por día en Londres" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formLondonCrimes);
+            fetchLondonCrimesPrediction(formLondonCrimes.date);
+          }}
+        >
+          <h2>
+            Modelo predicción de la cantidad de crímines por día en Londres
+          </h2>
+          <label>
+            ¿Sobre qué día deseas saber?:
+            <input
+              type="text"
+              name="date"
+              value={formLondonCrimes.date}
+              onChange={handleInputChangeCrime}
+              required
+            />
+          </label>
+          <br />
+
+          <button type="submit">Consultar</button>
+        </form>
+      )}
+
+      {selectedModel?.name ===
+        "Modelo clasificador de accidente cerebro-vascular" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formStroke);
+            fetchStrokeClasifier(
+              formStroke.gender,
+              formStroke.age,
+              formStroke.hypertension,
+              formStroke.heart_disease,
+              formStroke.ever_married,
+              formStroke.work_type,
+              formStroke.Residence_type,
+              formStroke.avg_glucose_level,
+              formStroke.bmi,
+              formStroke.smoking_status
+            );
+          }}
+        >
+          <h2>Modelo de clasificación para accidente cerebrovascular (ACV)</h2>
+
+          <label>
+            Género:
+            <select
+              id="gender-combobox"
+              name="gender"
+              value={formStroke.gender}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="1">Femenino</option>
+              <option value="0">Masculino</option>
+            </select>
+          </label>
+          <br />
+
+          <label>
+            Edad:
+            <input
+              type="number"
+              name="age"
+              value={formStroke.age}
+              onChange={handleInputChangeStroke}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            ¿Padece hipertensión?:
+            <select
+              id="hypertension-combobox"
+              name="hypertension"
+              value={formStroke.hypertension}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="1">Sí</option>
+              <option value="0">No</option>
+            </select>
+          </label>
+          <br />
+
+          <label>
+            ¿Padece enfermedades cardiacas?:
+            <select
+              id="heart_disease-combobox"
+              name="heart_disease"
+              value={formStroke.heart_disease}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="1">Sí</option>
+              <option value="0">No</option>
+            </select>
+          </label>
+          <br />
+
+          <label>
+            ¿El paciente se ha casado alguna vez?:
+            <select
+              id="ever_married-combobox"
+              name="ever_married"
+              value={formStroke.ever_married}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="1">Sí</option>
+              <option value="0">No</option>
+            </select>
+          </label>
+          <br />
+
+          <label>
+            Tipo de trabajo:
+            <select
+              id="work_type-combobox"
+              name="work_type"
+              value={formStroke.work_type}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="children">El paciente es un niño</option>
+              <option value="Govt_job">Empleado del gobierno</option>
+              <option value="Govt_job">Empleado del gobierno</option>
+              <option value="Private">Trabaja en el sector privado</option>
+              <option value="Self-employed">
+                Autónomo o trabaja por cuenta propia
+              </option>
+            </select>
+          </label>
+          <br />
+
+          <label>
+            Tipo de residencia:
+            <select
+              type="text"
+              name="Residence_type"
+              value={formStroke.Residence_type}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="Urban">Urbana</option>
+              <option value="Rura">Rural</option>
+            </select>
+          </label>
+          <br />
+
+          <label>
+            Nivel de glucosa promedio:
+            <input
+              type="number"
+              name="avg_glucose_level"
+              value={formStroke.avg_glucose_level}
+              onChange={handleInputChangeStroke}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Indice de Masa Corporal (IMC):
+            <input
+              type="number"
+              name="bmi"
+              value={formStroke.bmi}
+              onChange={handleInputChangeStroke}
+              required
+            />
+          </label>
+          <br />
+
+          <label>
+            Hábito de fumar:
+            <select
+              id="smoking_status-combobox"
+              name="smoking_status"
+              value={formStroke.smoking_status}
+              onChange={handleInputChangeStroke}
+              required
+            >
+              <option value="">--Seleccione una opción--</option>
+              <option value="formerly smoked">Antes fumaba</option>
+              <option value="never smoked">Nunca he fumado</option>
+              <option value="smokes">Actualmente fumo</option>
+              <option value="Unknown">Desconocido</option>
+            </select>
+          </label>
+          <br />
+
+          <button type="submit">Consultar</button>
+        </form>
+      )}
+
+      {selectedModel?.name ===
+        "Modelo Predictor de las acciones del mercado SP 500" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log("Form data:", formDataStock);
+            fetchStockValuePrediction(formDataStock.date);
+          }}
+        >
+          <h2>Modelo predictor de las acciones del mercado SP 500</h2>
+          <label>
+            ¿Sobre qué día deseas saber?:
+            <input
+              type="text"
+              name="date"
+              value={formDataStock.date}
+              onChange={handleInputChangeStocks}
+              required
+            />
+          </label>
+          <br />
+
+          <button type="submit">Consultar</button>
         </form>
       )}
 
