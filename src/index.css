@@ -1,13 +1,150 @@
 body {
-  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  height: 100%;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+/* Contenedores y flexbox */
+.container, .full-height {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  justify-content: flex-start;
+  height: 100vh;
+}
+
+.full-height {
+  min-height: 100vh;
+}
+
+/* Títulos y listas */
+h1, ul {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 36px;
+  margin-top: 20%;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+/* Botón */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  width: auto;
+  max-width: 200px;
+  text-align: center;
+  z-index: 10;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center; /* Centra el botón horizontalmente */
+}
+
+.form-bootstrap {
+  max-width: 600px; /* Ajusta el ancho del formulario */
+  margin: 0 auto; /* Centra el formulario horizontalmente */
+  padding: 20px;
+  background-color: #f8f9fa; /* Color de fondo suave */
+  border-radius: 10px; /* Bordes redondeados */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.form-bootstrap .form-control {
+  margin-bottom: 15px; /* Espacio entre los campos del formulario */
+  flex-grow: 1;
+}
+
+.card-hover {
+  transition: background-color 0.3s ease; /* Transición suave para el cambio de color */
+}
+
+.card-hover:hover {
+  background-color: rgba(138, 133, 133, 0.7); /* Color negro semitransparente al pasar el mouse */
+}
+
+/* Fondo y animación de gradiente */
+.gradient-background {
+  background: linear-gradient(270deg, #6cacd7, #975a80);
+  background-size: 400% 400%;
+  animation: gradientAnimationBkgd 13s ease infinite;
+}
+
+.btn-gradiente {
+  background: linear-gradient(10deg, #6f7909, #00d4ff);
+  background-size: 400% 400%; /* Tamaño del fondo para permitir el movimiento */
+  animation: gradientAnimationBtnRecord 13s ease infinite; /* Animación del gradiente */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra del botón */
+}
+
+.btn-gradienteFaceRecognition {
+  background: linear-gradient(10deg, #6cacd7, #975a80);
+  background-size: 400% 400%; /* Tamaño del fondo para permitir el movimiento */
+  animation: gradientAnimationBtnRecord 5s ease infinite; /* Animación del gradiente */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra del botón */
+}
+
+.gradient-backgroundFaceRecognition {
+  background: linear-gradient(270deg, #093c79, #408c74);
+  background-size: 400% 400%;
+  animation: gradientAnimationBkgd 13s ease infinite;
+}
+
+
+@keyframes gradientAnimationBkgd {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes gradientAnimationBtnRecord {
+  0% {
+    background-position: 0% 50%; /* Posición inicial del gradiente */
+  }
+  50% {
+    background-position: 100% 50%; /* Posición del gradiente a la mitad de la animación */
+  }
+  100% {
+    background-position: 0% 50%; /* Regresar a la posición inicial */
+  }
+}
+
+/* Transición de opacidad */
+.fade-in-out {
+  opacity: 0;
+  transition: opacity 2s ease-in-out;
+}
+
+.fade-in-out.show {
+  opacity: 1;
+}
+
+

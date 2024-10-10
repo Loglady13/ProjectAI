@@ -4,6 +4,7 @@ import pickle
 import pandas as pd
 import sklearn
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 class ModelLoading:
     def __init__(self):
@@ -150,6 +151,67 @@ class ModelLoading:
             return prediction[0]  # El precio promedio predicho
         except Exception as e:
             print(f"Error predicting with model 'aguacate': {e}")
+            return None
+
+    def modelo_crimenes_londres(self, date):
+        try:
+            date_to_predict = pd.to_datetime(date)
+            input_data = pd.DataFrame({
+                'value': [0]
+            }, index=[date_to_predict])
+            prediction = self.modelos['london_crime_model'].predict(start=input_data.index[0], end=input_data.index[0], dynamic=False)
+            
+            fixedPrediction = round(prediction[0], 2)
+            result = f"La predicción es de {fixedPrediction} crímenes aprox. para ese día."
+            
+            # Devolver la predicción
+            return result  # El precio promedio predicho
+        except Exception as e:
+            print(f"Error predicting with model 'London crimes': {e}")
+            return None
+
+    def modelo_clasificacion_acv(self, gender, age, hypertension, heart_disease, ever_married, work_type, Residence_type, avg_glucose_level, bmi, smoking_status):
+            try:
+                input_data = pd.DataFrame({
+                    'gender': [gender],
+                    'age': [age],
+                    'hypertension': [hypertension],
+                    'heart_disease': [heart_disease],
+                    'ever_married': [ever_married],
+                    'work_type': [work_type],
+                    'Residence_type': [Residence_type],
+                    'avg_glucose_level': [avg_glucose_level],
+                    'bmi': [bmi],
+                    'smoking_status': [smoking_status]
+                })
+                
+                # Codificar variables categóricas
+                label_encoder = LabelEncoder()
+                input_data['work_type'] = label_encoder.fit_transform(input_data['work_type'])
+                input_data['Residence_type'] = label_encoder.fit_transform(input_data['Residence_type'])
+                input_data['smoking_status'] = label_encoder.fit_transform(input_data['smoking_status'])
+
+                prediction = self.modelos['stroke_decision_tree_model'].predict(input_data)
+
+                # Devolver la predicción
+                return prediction[0]  # El precio promedio predicho
+            except Exception as e:
+                print(f"Error predicting with model 'Stroke clasifier': {e}")
+                return None
+
+    def modelo_SP_stockValue(self, date):
+        try:
+            date_to_predict = pd.to_datetime(date)
+            
+            prediction = self.modelos['s&p_model'].predict(start=date_to_predict, dynamic=False)
+            
+            fixedPrediction = round(prediction[0], 2)
+            result = f"Se estima un valor de {fixedPrediction} para el día indicado."
+            
+            # Devolver la predicción
+            return result  # El precio promedio predicho
+        except Exception as e:
+            print(f"Error predicting with model 'S&P 500 Stock value': {e}")
             return None
 
 
