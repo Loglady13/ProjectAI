@@ -343,6 +343,116 @@ def rossman_prediction():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/crimes_prediction', methods=['GET'])
+def crimes_prediction():
+    try:
+        # Obtener los parámetros desde la solicitud
+        date = request.args.get('date')
+
+        # Verificar que todos los parámetros estén presentes
+        if date is None:
+            return jsonify({"error": "Missing parameters"}), 400
+
+        # Convertir los valores a los tipos apropiados
+        dateToString = str(date)
+
+        # Realizar la predicción utilizando el modelo cargado
+        predicted_crimes = model_loader.modelo_crimenes_londres(dateToString)
+        
+        # Si no se puede hacer la predicción, retornar un mensaje de error
+        if predicted_crimes is None:
+            return jsonify({"error": "Prediction failed"}), 500
+
+        # Retornar la predicción en formato JSON
+        return jsonify(prediction=predicted_crimes)
+    
+    except ValueError as ve:
+        return jsonify({"error": f"Invalid input values: {ve}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/stroke_prediction', methods=['GET'])
+def stroke_prediction():
+    try:
+        # Obtener los parámetros desde la solicitud
+        gender = request.args.get('gender')
+        age = request.args.get('age')
+        hypertension = request.args.get('hypertension')
+        heart_disease = request.args.get('heart_disease')
+        ever_married = request.args.get('ever_married')
+        work_type = request.args.get('work_type')
+        Residence_type = request.args.get('Residence_type')
+        avg_glucose_level = request.args.get('avg_glucose_level')
+        bmi = request.args.get('bmi')
+        smoking_status  = request.args.get('smoking_status')
+
+        # Verificar que todos los parámetros estén presentes
+        if any(v is None for v in [gender, age, hypertension, heart_disease, 
+                           ever_married, work_type, Residence_type, 
+                           avg_glucose_level, bmi, smoking_status]):
+            return jsonify({"error": "Missing parameters"}), 400
+
+        # Convertir los valores a los tipos apropiados
+        gender = int(gender)
+        age = int(age)
+        hypertension = int(hypertension)
+        heart_disease = int(heart_disease)
+        ever_married = int(ever_married)
+        work_type = str(work_type)
+        Residence_type = str(Residence_type)
+        avg_glucose_level = float(avg_glucose_level)
+        bmi = float(bmi)
+        smoking_status = str(smoking_status)
+
+        # Realizar la predicción utilizando el modelo cargado
+        predicted_class = model_loader.modelo_clasificacion_acv(gender, age, hypertension, heart_disease, ever_married, work_type, Residence_type, avg_glucose_level, bmi, smoking_status)
+
+        # Si no se puede hacer la predicción, retornar un mensaje de error
+        if predicted_class is None:
+            return jsonify({"error": "Prediction failed"}), 500
+        predicted_class = int(predicted_class)
+        result = "El modelo ha determinado que el paciente "
+        if predicted_class == 0:
+            result += "NO va a padecer un ACV."
+        else:
+            result += "VA a padecer un ACV."
+
+        # Retornar la predicción en formato JSON
+        return jsonify(prediction=result)
+    
+    except ValueError as ve:
+        return jsonify({"error": f"Invalid input values: {ve}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/stockValue_prediction', methods=['GET'])
+def stockValue_prediction():
+    try:
+        # Obtener los parámetros desde la solicitud
+        date = request.args.get('date')
+
+        # Verificar que todos los parámetros estén presentes
+        if date is None:
+            return jsonify({"error": "Missing parameters"}), 400
+
+        # Convertir los valores a los tipos apropiados
+        dateToString = str(date)
+
+        # Realizar la predicción utilizando el modelo cargado
+        predicted_crimes = model_loader.modelo_SP_stockValue(dateToString)
+        
+        # Si no se puede hacer la predicción, retornar un mensaje de error
+        if predicted_crimes is None:
+            return jsonify({"error": "Prediction failed"}), 500
+
+        # Retornar la predicción en formato JSON
+        return jsonify(prediction=predicted_crimes)
+    
+    except ValueError as ve:
+        return jsonify({"error": f"Invalid input values: {ve}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
