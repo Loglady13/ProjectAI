@@ -94,6 +94,8 @@ const ModelSelection = () => {
 
   const [visible, setVisible] = useState(true);
 
+  const [recordBtnText, setRecordBtnText] = useState("Pulsa para hablar");
+
   const models = [
     { id: 1, name: "Modelo Calidad Vino" },
     { id: 2, name: "Modelo Precio Aguacate" },
@@ -438,6 +440,12 @@ const ModelSelection = () => {
       possibleModel = findRespectiveModel("vino");
     } else if (transcript.includes("autos")) {
       possibleModel = findRespectiveModel("autos");
+    } else if (
+      transcript.includes("hepatitis") ||
+      transcript.includes("hepatitis C") ||
+      transcript.includes("hepatitis c")
+    ) {
+      possibleModel = findRespectiveModel("hepatitis");
     } else if (transcript.includes("bitcoin")) {
       possibleModel = findRespectiveModel("bitcoin");
     } else if (transcript.includes("casa")) {
@@ -445,6 +453,8 @@ const ModelSelection = () => {
     } else if (
       transcript.includes("compañia") ||
       transcript.includes("compañía") ||
+      transcript.includes("roseman") ||
+      transcript.includes("Roseman") ||
       transcript.includes("rosman") ||
       transcript.includes("Rosman") ||
       transcript.includes("Rossman")
@@ -483,7 +493,13 @@ const ModelSelection = () => {
 
   recognition.onresult = function (event) {
     const transcript = event.results[0][0].transcript;
+    console.log(transcript);
     processRecording(transcript);
+  };
+
+  recognition.onaudiostart = () => {
+    console.log("Some sound is being received");
+    setRecordBtnText("Escuchando...");
   };
 
   recognition.onerror = function (event) {
@@ -493,6 +509,7 @@ const ModelSelection = () => {
 
   recognition.onspeechend = function () {
     recognition.stop(); // Detener cuando el usuario deja de hablar
+    setRecordBtnText("Presiona para hablar");
   };
 
   function startRecognition() {
@@ -512,21 +529,59 @@ const ModelSelection = () => {
   };
 
   return (
-    <div className="container-fluid gradient-background">
+    <div className="container-fluid gradient-background text-center full-height">
       <h1>Selecciona un Modelo de IA</h1>
-      <ul>
-        {models.map((model) => (
-          <li key={model.id}>
-            <label>{model.name}</label>
-          </li>
-        ))}
-      </ul>
 
-      <button onClick={startRecordingHandler}>Pulsa para hablar</button>
+      {/* Solo mostrar la lista de modelos si no hay un formulario seleccionado */}
+      {!selectedModel && (
+        <div
+          className="d-flex flex-wrap justify-content-center"
+          style={{ padding: "20px" }}
+        >
+          {models.map((model) => (
+            <div className="p-3" key={model.id}>
+              <div
+                className="bg-transparent text-dark rounded p-3 card-hover"
+                style={{
+                  minWidth: "150px",
+                  textAlign: "center",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                <h5>{model.name}</h5>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <label className={`fade-in-out ${visible ? "show" : ""}`}>
-        {phrases[currentPhraseIndex]}
-      </label>
+      <div className="row gy-5">
+        <button
+          className="btn btn-gradiente"
+          onClick={startRecordingHandler}
+          style={{
+            border: "none",
+            color: "#fff", // Color del texto
+            fontSize: "16px",
+            fontWeight: "bold",
+            padding: "15px 30px", // Ajusta el padding según sea necesario
+            borderRadius: "30px", // Para hacer el botón redondo
+            cursor: "pointer",
+            position: "relative",
+            overflow: "hidden", // Para que el gradiente no sobresalga del botón
+            zIndex: 1,
+            textAlign: "center",
+          }}
+        >
+          {recordBtnText}
+        </button>
+      </div>
+
+      <div className="row gy-5">
+        <label className={`fade-in-out ${visible ? "show" : ""}`}>
+          {phrases[currentPhraseIndex]}
+        </label>
+      </div>
 
       {speech !== "" && (
         <p>
@@ -537,6 +592,7 @@ const ModelSelection = () => {
       {/* Mostrar el formulario si el modelo "vino" está seleccionado */}
       {selectedModel?.name === "Modelo Calidad Vino" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataWine);
@@ -549,48 +605,55 @@ const ModelSelection = () => {
         >
           <h2>Modelo de Predicción de Vino</h2>
 
-          <label>
-            Volatile Acidity:
+          <div className="mb-2">
+            <label className="form-label">Volatile Acidity:</label>
             <input
               type="text"
+              className="form-control"
               name="volatileAcidity"
               value={formDataWine.volatileAcidity}
               onChange={handleInputChangeWine}
               required
             />
-          </label>
-          <br />
+          </div>
 
-          <label>
-            Density:
-            <input
-              type="text"
-              name="density"
-              value={formDataWine.density}
-              onChange={handleInputChangeWine}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Density:
+              <input
+                type="text"
+                className="form-control"
+                name="density"
+                value={formDataWine.density}
+                onChange={handleInputChangeWine}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Alcohol:
-            <input
-              type="text"
-              name="alcohol"
-              value={formDataWine.alcohol}
-              onChange={handleInputChangeWine}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Alcohol:
+              <input
+                type="text"
+                className="form-control"
+                name="alcohol"
+                value={formDataWine.alcohol}
+                onChange={handleInputChangeWine}
+                required
+              />
+            </label>
+          </div>
 
-          <button type="submit">Enviar</button>
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name === "Modelo Precio Aguacate" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataAvocado);
@@ -605,72 +668,84 @@ const ModelSelection = () => {
         >
           <h2>Modelo de predicción del precio del aguacate</h2>
 
-          <label>
-            Total Volume:
-            <input
-              type="text"
-              name="total_volume"
-              value={formDataAvocado.total_volume}
-              onChange={handleInputChangeAvocado}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Total Volume:
+              <input
+                type="text"
+                className="form-control"
+                name="total_volume"
+                value={formDataAvocado.total_volume}
+                onChange={handleInputChangeAvocado}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Year:
-            <input
-              type="text"
-              name="year"
-              value={formDataAvocado.year}
-              onChange={handleInputChangeAvocado}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Year:
+              <input
+                type="text"
+                className="form-control"
+                name="year"
+                value={formDataAvocado.year}
+                onChange={handleInputChangeAvocado}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Month:
-            <input
-              type="text"
-              name="month"
-              value={formDataAvocado.month}
-              onChange={handleInputChangeAvocado}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Month:
+              <input
+                type="text"
+                className="form-control"
+                name="month"
+                value={formDataAvocado.month}
+                onChange={handleInputChangeAvocado}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Day:
-            <input
-              type="text"
-              name="day"
-              value={formDataAvocado.day}
-              onChange={handleInputChangeAvocado}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Day:
+              <input
+                type="text"
+                className="form-control"
+                name="day"
+                value={formDataAvocado.day}
+                onChange={handleInputChangeAvocado}
+                required
+              />
+            </label>
+          </div>
+          <div className="mb-2">
+            <label>
+              Region:
+              <input
+                type="text"
+                className="form-control"
+                name="region"
+                value={formDataAvocado.region}
+                onChange={handleInputChangeAvocado}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Region:
-            <input
-              type="text"
-              name="region"
-              value={formDataAvocado.region}
-              onChange={handleInputChangeAvocado}
-              required
-            />
-          </label>
-          <br />
-
-          <button type="submit">Enviar</button>
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name === "Modelo Precio Autos" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataCars);
@@ -686,89 +761,113 @@ const ModelSelection = () => {
           }}
         >
           <h2>Modelo predicción del precio de un auto</h2>
-          <label>
-            Year:
-            <input
-              type="text"
-              name="year"
-              value={formDataCars.year}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Present price:
-            <input
-              type="text"
-              name="presentPrice"
-              value={formDataCars.presentPrice}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Kms driven:
-            <input
-              type="text"
-              name="kms_driven"
-              value={formDataCars.kms_driven}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Fuel Type:
-            <input
-              type="text"
-              name="fuel_type"
-              value={formDataCars.fuel_type}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Seller Type:
-            <input
-              type="text"
-              name="seller_type"
-              value={formDataCars.seller_type}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Transmission:
-            <input
-              type="text"
-              name="transmission"
-              value={formDataCars.transmission}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Owner:
-            <input
-              type="text"
-              name="owner"
-              value={formDataCars.owner}
-              onChange={handleInputChangeCars}
-              required
-            />
-          </label>
-          <br />
-          <button type="submit">Enviar</button>
+
+          <div className="mb-2">
+            <label>
+              Year:
+              <input
+                type="text"
+                className="form-control"
+                name="year"
+                value={formDataCars.year}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Present price:
+              <input
+                type="text"
+                className="form-control"
+                name="presentPrice"
+                value={formDataCars.presentPrice}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Kms driven:
+              <input
+                type="text"
+                className="form-control"
+                name="kms_driven"
+                value={formDataCars.kms_driven}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Fuel Type:
+              <input
+                type="text"
+                className="form-control"
+                name="fuel_type"
+                value={formDataCars.fuel_type}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Seller Type:
+              <input
+                type="text"
+                className="form-control"
+                name="seller_type"
+                value={formDataCars.seller_type}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Transmission:
+              <input
+                type="text"
+                className="form-control"
+                name="transmission"
+                value={formDataCars.transmission}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Owner:
+              <input
+                type="text"
+                className="form-control"
+                name="owner"
+                value={formDataCars.owner}
+                onChange={handleInputChangeCars}
+                required
+              />
+            </label>
+          </div>
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name === "Modelo Predictor Hepatitis C" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataHepatitis);
@@ -788,122 +887,154 @@ const ModelSelection = () => {
         >
           <h2>Modelo predicción de Hepatitis</h2>
 
-          <label>
-            ALB (Albúmina):
-            <input
-              type="text"
-              name="alb"
-              value={formDataHepatitis.alb}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            ALP (Fosfatasa Alcalina):
-            <input
-              type="text"
-              name="alp"
-              value={formDataHepatitis.alp}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            ALT (alanina aminotransferasa):
-            <input
-              type="text"
-              name="alt"
-              value={formDataHepatitis.alt}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            AST (Aspartato aminotransferasa):
-            <input
-              type="text"
-              name="ast"
-              value={formDataHepatitis.ast}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            BIL (Bilirrubina):
-            <input
-              type="text"
-              name="bil"
-              value={formDataHepatitis.bil}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            CHE (Colinesterasa):
-            <input
-              type="text"
-              name="che"
-              value={formDataHepatitis.che}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            CHOL (Colesterol):
-            <input
-              type="text"
-              name="chol"
-              value={formDataHepatitis.chol}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            CREA (Creatina):
-            <input
-              type="text"
-              name="crea"
-              value={formDataHepatitis.crea}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            GGT (gamma-glutamil):
-            <input
-              type="text"
-              name="ggt"
-              value={formDataHepatitis.ggt}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            PROT (Proteínas):
-            <input
-              type="text"
-              name="prot"
-              value={formDataHepatitis.prot}
-              onChange={handleInputChangeHepatitis}
-              required
-            />
-          </label>
-          <br />
-          <button type="submit">Enviar</button>
+          <div className="form-group">
+            <label>
+              ALB (Albúmina):
+              <input
+                type="text"
+                className="form-control"
+                name="alb"
+                value={formDataHepatitis.alb}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="form-group">
+            <label>
+              ALP (Fosfatasa Alcalina):
+              <input
+                type="text"
+                className="form-control"
+                name="alp"
+                value={formDataHepatitis.alp}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              ALT (alanina aminotransferasa):
+              <input
+                type="text"
+                className="form-control"
+                name="alt"
+                value={formDataHepatitis.alt}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              AST (Aspartato aminotransferasa):
+              <input
+                type="text"
+                className="form-control"
+                name="ast"
+                value={formDataHepatitis.ast}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              BIL (Bilirrubina):
+              <input
+                type="text"
+                className="form-control"
+                name="bil"
+                value={formDataHepatitis.bil}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              CHE (Colinesterasa):
+              <input
+                type="text"
+                className="form-control"
+                name="che"
+                value={formDataHepatitis.che}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              CHOL (Colesterol):
+              <input
+                type="text"
+                className="form-control"
+                name="chol"
+                value={formDataHepatitis.chol}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              CREA (Creatina):
+              <input
+                type="text"
+                className="form-control"
+                name="crea"
+                value={formDataHepatitis.crea}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              GGT (gamma-glutamil):
+              <input
+                type="text"
+                className="form-control"
+                name="ggt"
+                value={formDataHepatitis.ggt}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              PROT (Proteínas):
+              <input
+                type="text"
+                className="form-control"
+                name="prot"
+                value={formDataHepatitis.prot}
+                onChange={handleInputChangeHepatitis}
+                required
+              />
+            </label>
+          </div>
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name === "Modelo Predictor Precio del Bitcoin" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataBitcoin);
@@ -912,24 +1043,29 @@ const ModelSelection = () => {
         >
           <h2>Modelo de predicción del precio del bitcoin</h2>
 
-          <label>
-            Date:
-            <input
-              type="text"
-              name="date"
-              value={formDataBitcoin.date}
-              onChange={handleInputChangeBitcoin}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Date:
+              <input
+                type="text"
+                className="form-control"
+                name="date"
+                value={formDataBitcoin.date}
+                onChange={handleInputChangeBitcoin}
+                required
+              />
+            </label>
+          </div>
 
-          <button type="submit">Enviar</button>
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name === "Modelo Predictor Precio Casa" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataCasa);
@@ -944,80 +1080,101 @@ const ModelSelection = () => {
           }}
         >
           <h2>Modelo predicción del precio de una casa</h2>
-          <label>
-            Valor fiscal de la estructura:
-            <input
-              type="text"
-              name="structuretaxvaluedollarcnt"
-              value={formDataCasa.structuretaxvaluedollarcnt}
-              onChange={handleInputChangeCasa}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Superficie total terminada:
-            <input
-              type="text"
-              name="calculatedfinishedsquarefeet"
-              value={formDataCasa.calculatedfinishedsquarefeet}
-              onChange={handleInputChangeCasa}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Tamaño del lote o terreno:
-            <input
-              type="text"
-              name="lotsizesquarefeet"
-              value={formDataCasa.lotsizesquarefeet}
-              onChange={handleInputChangeCasa}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Número de baños:
-            <input
-              type="text"
-              name="bathroomcnt"
-              value={formDataCasa.bathroomcnt}
-              onChange={handleInputChangeCasa}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Número de dormitorios:
-            <input
-              type="text"
-              name="bedroomcnt"
-              value={formDataCasa.bedroomcnt}
-              onChange={handleInputChangeCasa}
-              required
-            />
-          </label>
-          <br />
-          <label>
-            Año de construcción de la casa:
-            <input
-              type="text"
-              name="yearbuilt"
-              value={formDataCasa.yearbuilt}
-              onChange={handleInputChangeCasa}
-              required
-            />
-          </label>
-          <br />
 
-          <button type="submit">Enviar</button>
+          <div className="mb-2">
+            <label>
+              Valor fiscal de la estructura:
+              <input
+                type="text"
+                className="form-control"
+                name="structuretaxvaluedollarcnt"
+                value={formDataCasa.structuretaxvaluedollarcnt}
+                onChange={handleInputChangeCasa}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Superficie total terminada:
+              <input
+                type="text"
+                className="form-control"
+                name="calculatedfinishedsquarefeet"
+                value={formDataCasa.calculatedfinishedsquarefeet}
+                onChange={handleInputChangeCasa}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Tamaño del lote o terreno:
+              <input
+                type="text"
+                className="form-control"
+                name="lotsizesquarefeet"
+                value={formDataCasa.lotsizesquarefeet}
+                onChange={handleInputChangeCasa}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Número de baños:
+              <input
+                type="text"
+                className="form-control"
+                name="bathroomcnt"
+                value={formDataCasa.bathroomcnt}
+                onChange={handleInputChangeCasa}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Número de dormitorios:
+              <input
+                type="text"
+                className="form-control"
+                name="bedroomcnt"
+                value={formDataCasa.bedroomcnt}
+                onChange={handleInputChangeCasa}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="mb-2">
+            <label>
+              Año de construcción de la casa:
+              <input
+                type="text"
+                className="form-control"
+                name="yearbuilt"
+                value={formDataCasa.yearbuilt}
+                onChange={handleInputChangeCasa}
+                required
+              />
+            </label>
+          </div>
+
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name ===
         "Modelo Predictor de las ventas de la compañia Rossman" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataRossman);
@@ -1035,109 +1192,128 @@ const ModelSelection = () => {
         >
           <h2>Modelo de predicción de las ventas de la compañia Rossman</h2>
 
-          <label>
-            Identificador de la tienda
-            <input
-              type="text"
-              name="Store"
-              value={formDataRossman.Store}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Identificador de la tienda
+              <input
+                type="text"
+                className="form-control"
+                name="Store"
+                value={formDataRossman.Store}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Día de la semana(1 = Domingo, 7 = Sábado):
-            <input
-              type="text"
-              name="DayOfWeek"
-              value={formDataRossman.DayOfWeek}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Día de la semana (1 = Domingo, 7 = Sábado):
+              <input
+                type="text"
+                className="form-control"
+                name="DayOfWeek"
+                value={formDataRossman.DayOfWeek}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Hay promoción en ese día sí(1) o no(0):
-            <input
-              type="text"
-              name="Promo"
-              value={formDataRossman.Promo}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Hay promoción en ese día sí(1) o no(0):
+              <input
+                type="text"
+                className="form-control"
+                name="Promo"
+                value={formDataRossman.Promo}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Hay feriada escolar en este día sí(1) o no(0):
-            <input
-              type="text"
-              name="SchoolHoliday"
-              value={formDataRossman.SchoolHoliday}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Hay feriada escolar en este día sí(1) o no(0):
+              <input
+                type="text"
+                className="form-control"
+                name="SchoolHoliday"
+                value={formDataRossman.SchoolHoliday}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Año:
-            <input
-              type="text"
-              name="Year"
-              value={formDataRossman.Year}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Año:
+              <input
+                type="text"
+                className="form-control"
+                name="Year"
+                value={formDataRossman.Year}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Mes:
-            <input
-              type="text"
-              name="Month"
-              value={formDataRossman.Month}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Mes:
+              <input
+                type="text"
+                className="form-control"
+                name="Month"
+                value={formDataRossman.Month}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Día:
-            <input
-              type="text"
-              name="Day"
-              value={formDataRossman.Day}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Día:
+              <input
+                type="text"
+                className="form-control"
+                name="Day"
+                value={formDataRossman.Day}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Número de clientes:
-            <input
-              type="text"
-              name="Customers"
-              value={formDataRossman.Customers}
-              onChange={handleInputChangeRossman}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Número de clientes:
+              <input
+                type="text"
+                className="form-control"
+                name="Customers"
+                value={formDataRossman.Customers}
+                onChange={handleInputChangeRossman}
+                required
+              />
+            </label>
+          </div>
 
-          <button type="submit">Enviar</button>
+          <button className="btn btn-primary" type="submit">
+            Enviar
+          </button>
         </form>
       )}
 
       {selectedModel?.name ===
         "Modelo Predictor de la cantidad de crímenes por día en Londres" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formLondonCrimes);
@@ -1147,25 +1323,31 @@ const ModelSelection = () => {
           <h2>
             Modelo predicción de la cantidad de crímines por día en Londres
           </h2>
-          <label>
-            ¿Sobre qué día deseas saber?:
-            <input
-              type="text"
-              name="date"
-              value={formLondonCrimes.date}
-              onChange={handleInputChangeCrime}
-              required
-            />
-          </label>
-          <br />
 
-          <button type="submit">Consultar</button>
+          <div className="mb-2">
+            <label>
+              ¿Sobre qué día deseas saber?
+              <input
+                type="text"
+                className="form-control"
+                name="date"
+                value={formLondonCrimes.date}
+                onChange={handleInputChangeCrime}
+                required
+              />
+            </label>
+          </div>
+
+          <button className="btn btn-primary" type="submit">
+            Consultar
+          </button>
         </form>
       )}
 
       {selectedModel?.name ===
         "Modelo clasificador de accidente cerebro-vascular" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formStroke);
@@ -1185,168 +1367,201 @@ const ModelSelection = () => {
         >
           <h2>Modelo de clasificación para accidente cerebrovascular (ACV)</h2>
 
-          <label>
-            Género:
-            <select
-              id="gender-combobox"
-              name="gender"
-              value={formStroke.gender}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="1">Femenino</option>
-              <option value="0">Masculino</option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Género
+              <select
+                id="gender-combobox"
+                name="gender"
+                className="form-control"
+                value={formStroke.gender}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option defaultValue={0} value="">
+                  --Seleccione una opción--
+                </option>
+                <option value="1">Femenino</option>
+                <option value="0">Masculino</option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            Edad:
-            <input
-              type="number"
-              name="age"
-              value={formStroke.age}
-              onChange={handleInputChangeStroke}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Edad
+              <input
+                type="number"
+                className="form-control"
+                name="age"
+                value={formStroke.age}
+                onChange={handleInputChangeStroke}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            ¿Padece hipertensión?:
-            <select
-              id="hypertension-combobox"
-              name="hypertension"
-              value={formStroke.hypertension}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="1">Sí</option>
-              <option value="0">No</option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              ¿Padece hipertensión?
+              <select
+                id="hypertension-combobox"
+                className="form-control"
+                name="hypertension"
+                value={formStroke.hypertension}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option defaultValue={0}>--Seleccione una opción--</option>
+                <option value="1">Sí</option>
+                <option value="0">No</option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            ¿Padece enfermedades cardiacas?:
-            <select
-              id="heart_disease-combobox"
-              name="heart_disease"
-              value={formStroke.heart_disease}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="1">Sí</option>
-              <option value="0">No</option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              ¿Padece enfermedades cardiacas?
+              <select
+                id="heart_disease-combobox"
+                className="form-control"
+                name="heart_disease"
+                value={formStroke.heart_disease}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option defaultValue={0} value="">
+                  --Seleccione una opción--
+                </option>
+                <option value="1">Sí</option>
+                <option value="0">No</option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            ¿El paciente se ha casado alguna vez?:
-            <select
-              id="ever_married-combobox"
-              name="ever_married"
-              value={formStroke.ever_married}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="1">Sí</option>
-              <option value="0">No</option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              ¿El paciente se ha casado alguna vez?
+              <select
+                id="ever_married-combobox"
+                className="form-control"
+                name="ever_married"
+                value={formStroke.ever_married}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option value="">--Seleccione una opción--</option>
+                <option value="1">Sí</option>
+                <option value="0">No</option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            Tipo de trabajo:
-            <select
-              id="work_type-combobox"
-              name="work_type"
-              value={formStroke.work_type}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="children">El paciente es un niño</option>
-              <option value="Govt_job">Empleado del gobierno</option>
-              <option value="Govt_job">Empleado del gobierno</option>
-              <option value="Private">Trabaja en el sector privado</option>
-              <option value="Self-employed">
-                Autónomo o trabaja por cuenta propia
-              </option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Tipo de trabajo
+              <select
+                id="work_type-combobox"
+                className="form-control"
+                name="work_type"
+                value={formStroke.work_type}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option select value="">
+                  --Seleccione una opción--
+                </option>
+                <option value="children">El paciente es un niño</option>
+                <option value="Govt_job">Empleado del gobierno</option>
+                <option value="Govt_job">Empleado del gobierno</option>
+                <option value="Private">Trabaja en el sector privado</option>
+                <option value="Self-employed">
+                  Autónomo o trabaja por cuenta propia
+                </option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            Tipo de residencia:
-            <select
-              type="text"
-              name="Residence_type"
-              value={formStroke.Residence_type}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="Urban">Urbana</option>
-              <option value="Rura">Rural</option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Tipo de residencia:
+              <select
+                type="text"
+                className="form-control"
+                name="Residence_type"
+                value={formStroke.Residence_type}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option select value="">
+                  --Seleccione una opción--
+                </option>
+                <option value="Urban">Urbana</option>
+                <option value="Rura">Rural</option>
+              </select>
+            </label>
+          </div>
 
-          <label>
-            Nivel de glucosa promedio:
-            <input
-              type="number"
-              name="avg_glucose_level"
-              value={formStroke.avg_glucose_level}
-              onChange={handleInputChangeStroke}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Nivel de glucosa promedio
+              <input
+                type="number"
+                className="form-control"
+                name="avg_glucose_level"
+                value={formStroke.avg_glucose_level}
+                onChange={handleInputChangeStroke}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Indice de Masa Corporal (IMC):
-            <input
-              type="number"
-              name="bmi"
-              value={formStroke.bmi}
-              onChange={handleInputChangeStroke}
-              required
-            />
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Indice de Masa Corporal (IMC)
+              <input
+                type="number"
+                className="form-control"
+                name="bmi"
+                value={formStroke.bmi}
+                onChange={handleInputChangeStroke}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Hábito de fumar:
-            <select
-              id="smoking_status-combobox"
-              name="smoking_status"
-              value={formStroke.smoking_status}
-              onChange={handleInputChangeStroke}
-              required
-            >
-              <option value="">--Seleccione una opción--</option>
-              <option value="formerly smoked">Antes fumaba</option>
-              <option value="never smoked">Nunca he fumado</option>
-              <option value="smokes">Actualmente fumo</option>
-              <option value="Unknown">Desconocido</option>
-            </select>
-          </label>
-          <br />
+          <div className="mb-2">
+            <label>
+              Hábito de fumar
+              <select
+                id="smoking_status-combobox"
+                className="form-control"
+                name="smoking_status"
+                value={formStroke.smoking_status}
+                onChange={handleInputChangeStroke}
+                required
+              >
+                <option select value="">
+                  --Seleccione una opción--
+                </option>
+                <option value="formerly smoked">Antes fumaba</option>
+                <option value="never smoked">Nunca he fumado</option>
+                <option value="smokes">Actualmente fumo</option>
+                <option value="Unknown">Desconocido</option>
+              </select>
+            </label>
+          </div>
 
-          <button type="submit">Consultar</button>
+          <button className="btn btn-primary" type="submit">
+            Consultar
+          </button>
         </form>
       )}
 
       {selectedModel?.name ===
         "Modelo Predictor de las acciones del mercado SP 500" && (
         <form
+          className="form-bootstrap"
           onSubmit={(e) => {
             e.preventDefault();
             console.log("Form data:", formDataStock);
@@ -1354,19 +1569,24 @@ const ModelSelection = () => {
           }}
         >
           <h2>Modelo predictor de las acciones del mercado SP 500</h2>
-          <label>
-            ¿Sobre qué día deseas saber?:
-            <input
-              type="text"
-              name="date"
-              value={formDataStock.date}
-              onChange={handleInputChangeStocks}
-              required
-            />
-          </label>
-          <br />
 
-          <button type="submit">Consultar</button>
+          <div className="mb-2">
+            <label>
+              ¿Sobre qué día deseas saber?:
+              <input
+                type="text"
+                className="form-control"
+                name="date"
+                value={formDataStock.date}
+                onChange={handleInputChangeStocks}
+                required
+              />
+            </label>
+          </div>
+
+          <button className="btn btn-primary" type="submit">
+            Consultar
+          </button>
         </form>
       )}
 
