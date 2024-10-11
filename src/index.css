@@ -73,11 +73,14 @@ button {
   background-color: #f8f9fa; /* Color de fondo suave */
   border-radius: 10px; /* Bordes redondeados */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  margin-bottom: 30px;
 }
 
 .form-bootstrap .form-control {
   margin-bottom: 15px; /* Espacio entre los campos del formulario */
-  flex-grow: 1;
+  max-width: 480px;
+  margin: 0 auto; /* Centrar el input horizontalmente */
+  display: block; /* Asegura que el input sea un bloque */
 }
 
 .card-hover {
@@ -96,10 +99,11 @@ button {
 }
 
 .btn-gradiente {
-  background: linear-gradient(10deg, #6f7909, #00d4ff);
+  background: linear-gradient(10deg, #6f7909, #0080ff);
   background-size: 400% 400%; /* Tamaño del fondo para permitir el movimiento */
   animation: gradientAnimationBtnRecord 13s ease infinite; /* Animación del gradiente */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Sombra del botón */
+  margin-bottom: 20px;
 }
 
 .btn-gradienteFaceRecognition {
