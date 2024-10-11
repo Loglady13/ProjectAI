@@ -434,7 +434,7 @@ const ModelSelection = () => {
         <div className="d-flex flex-wrap" style={{ padding: "25px", marginLeft: '210px', marginRight: '210px' }} >
           {models.map((model) => (
             <div className="p-2 w-50" key={model.id}>
-              <div className="bg-dark text-white rounded p-2 card-hover" style={{ minWidth: "150px", textAlign: "center" }} >
+              <div className=" text-white rounded p-2 card-hover" style={{ minWidth: "150px", textAlign: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" /* Fondo negro con 70% de opacidad */}} >
                 <h5>{model.name}</h5>
               </div>
             </div>
