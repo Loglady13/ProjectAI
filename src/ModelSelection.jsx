@@ -528,7 +528,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary  m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -610,7 +610,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary  m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -718,7 +718,7 @@ const ModelSelection = () => {
               required
             />
           </div>
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -865,7 +865,7 @@ const ModelSelection = () => {
               required
             />
           </div>
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -894,7 +894,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -990,7 +990,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -1112,7 +1112,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -1141,7 +1141,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
@@ -1327,13 +1327,13 @@ const ModelSelection = () => {
             </select>
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
       )}
 
-      {selectedModel?.name === "Modelo Predictor de las acciones del mercado SP 500" && (
+      {selectedModel?.name === "Modelo predictor de las acciones del mercado SP 500" && (
         <form
           className="form-bootstrap"
           onSubmit={(e) => {
@@ -1356,7 +1356,7 @@ const ModelSelection = () => {
             />
           </div>
 
-          <button className="btn btn-primary" type="submit">
+          <button className="btn btn-primary m-3" type="submit">
             Consultar
           </button>
         </form>
