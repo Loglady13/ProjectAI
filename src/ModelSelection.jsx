@@ -1364,7 +1364,7 @@ const ModelSelection = () => {
 
       {/* Mostrar la predicción para el modelo seleccionado */}
       {prediction && (
-        <div style={{ backgroundColor: 'white', margin: '20px', padding: '20px', borderRadius: '10px' }}>
+        <div style={{ backgroundColor: 'white', marginBottom: '30px', padding: '20px', borderRadius: '10px' }}>
           <h4>Predicción: {prediction}</h4>
         </div>
       )}
