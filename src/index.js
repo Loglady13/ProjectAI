@@ -7,6 +7,9 @@ import FaceRecognition from "./FaceRecognition";
 import ModelSelection from "./ModelSelection";
 import reportWebVitals from "./reportWebVitals";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Options from "./Options";
+import GundAndKnifeRec from "./GunsAndKnifeRec";
+import { ButtonRecognitionText } from "./ButtonRecognitionText";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +24,18 @@ const router = createBrowserRouter([
     path: "ModelSelection",
     element: <ModelSelection />,
   },
+  {
+    path: "Options",
+    element: <Options/>
+  },
+  {
+    path: "GunsAndKnifeRec",
+    element: <GundAndKnifeRec/>
+  },
+  {
+    path: "ButtonRecognitionText",
+    element: <ButtonRecognitionText/>
+  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

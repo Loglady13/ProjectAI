@@ -422,6 +422,7 @@ const ModelSelection = () => {
   const startRecordingHandler = () => {
     setSpeech("");
     setSelectedModel(null);
+    setPrediction(null);
     startRecognition();
   };
 

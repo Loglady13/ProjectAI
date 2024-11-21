@@ -1,18 +1,23 @@
 from datetime import timedelta
 import os
 import pickle
+from tkinter.ttk import Frame
 import pandas as pd
 import sklearn
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+import cv2
+from PIL import Image
+import tensorflow as tf
 
 class ModelLoading:
+    
     def __init__(self):
         self.modelos = self.load_models()
 
     @staticmethod
     def  load_models():
-        directory_path = r'.\modelos'
+        directory_path = r'../modelos'
 
         loaded_models = {}
         for filename in os.listdir(directory_path):
@@ -214,6 +219,34 @@ class ModelLoading:
             print(f"Error predicting with model 'S&P 500 Stock value': {e}")
             return None
 
+    def modelo_predecir_persona(self, frame):
+        # Cargar el modelo una sola vez al iniciar la aplicación
+        modelo_path = '../deep_learning_models/reconocimiento_facial.keras'
+        try:
+            modelo = tf.keras.models.load_model(modelo_path)
+        except Exception as e:
+            modelo = None
+            print(f"Error al cargar el modelo: {e}")
+        try:
+            # Redimensionar la imagen al tamaño que espera el modelo (ajusta si es necesario)
+            input_size = (224, 224)  # Cambia esto según el tamaño de entrada de tu modelo
+            imagen_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            imagen_pil = Image.fromarray(imagen_rgb)
+            imagen_redimensionada = imagen_pil.resize(input_size)
+
+            # Convertir la imagen a un array NumPy y normalizarla
+            imagen_array = np.array(imagen_redimensionada) / 255.0
+            imagen_array = np.expand_dims(imagen_array, axis=0)  # Añadir dimensión batch
+
+            # Hacer la predicción con el modelo
+            predicciones = modelo.predict(imagen_array)
+            clase_predicha = np.argmax(predicciones, axis=1)[0]  # Obtener la clase con mayor probabilidad
+
+            # Mapear la clase predicha a un nombre
+            clases = ["Persona 1", "Persona 2", "Desconocido"]  # Cambia esto según tus clases
+            return clases[clase_predicha] if clase_predicha < len(clases) else "Desconocido"
+        except Exception as e:
+            raise ValueError(f"Error al procesar la imagen: {e}")
 
 if __name__ == "__main__":
     model_loader = ModelLoading()

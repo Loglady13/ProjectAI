@@ -1,76 +1,247 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Importa CORS
 import boto3
 import io
 from PIL import Image
 import cv2
+import keras
 from models import ModelLoading
 import numpy as np
+import logging
+import divisor_video
+import procesar_video
+import analizador_video
+import os
+from tensorflow.keras.applications.vgg16 import preprocess_input
+from PIL import Image
+import tensorflow as tf
+import wave
+import uuid
+import tempfile
+import librosa
+import numpy as np
+
 
 
 app = Flask(__name__)
 CORS(app) 
 model_loader = ModelLoading()
+UPLOAD_FOLDER = 'uploads'  # Carpeta donde se almacenan los videos subidos temporalmente
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Asegúrate de que la carpeta para subir videos exista
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Configuración de logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def process_uploaded_video(video_path):
+    try:
+        # Se va a ir indicando en qué parte del proceso se encuentra el video
+        logging.info("Dividiendo video subido...")
+        divided_videos = divisor_video.split_video(video_path, 4)
+
+        logging.info("Procesando videos divididos...")
+        results_dict = procesar_video.process_videos_with_threading(divided_videos, 'reporte1')
+
+        logging.info("Analizando resultados...")
+        analysis_results = analizador_video.plot_class_and_general_stats(results_dict)
+        return analysis_results
+
+    except Exception as e:
+        logging.error(f"Error en el procesamiento de videos: {e}")
+        return {"error": str(e)}
+
+@app.route('/process_videos', methods=['POST'])
+def analizador_videos():
+    # Verifica si se incluyó un archivo en la solicitud
+    if 'video' not in request.files:
+        return jsonify({"error": "No se proporcionó un archivo de video"}), 400
+
+    video = request.files['video']
+    if video.filename == '':
+        return jsonify({"error": "No se seleccionó ningún archivo"}), 400
+
+    # Asegúrate de que el archivo tiene un nombre seguro
+    
+    video_path = os.path.join(app.config['UPLOAD_FOLDER'], video.filename)
+
+    # Guarda el archivo subido en el servidor
+    video.save(video_path)
+
+    # Procesa el video subido
+    analysis_results = process_uploaded_video(video_path)
+
+    # Elimina el archivo después de procesarlo si no necesitas almacenarlo
+    os.remove(video_path)
+
+    return jsonify(analysis_results)
 # Inicializa los clientes de AWS Rekognition y DynamoDB
 rekognition = boto3.client('rekognition', region_name='us-east-1')
 dynamodb = boto3.client('dynamodb', region_name='us-east-1')
 
-@app.route('/recognize', methods=['POST'])
-def recognize_face():
-    # Usa OpenCV para capturar una imagen desde la cámara
+def capturar_y_preprocesar_imagen(img_size=(299, 299)):
+
     cap = cv2.VideoCapture(0)
+
     if not cap.isOpened():
-        return jsonify({"error": "No se puede abrir la cámara"}), 500
-
-    # Captura un solo frame de la cámara
-    ret, frame = cap.read()
-    if not ret:
-        return jsonify({"error": "No se puede capturar una imagen"}), 500
-
-    # Libera la cámara
-    cap.release()
-
-    # Convierte el frame capturado (que está en formato BGR) a una imagen PIL en formato RGB
-    image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-
-    # Convierte la imagen en un stream de bytes para enviarla a Rekognition
-    stream = io.BytesIO()
-    image.save(stream, format="JPEG")
-    image_binary = stream.getvalue()
-
-    # Llama a Rekognition para buscar caras en la imagen
-    try:
-        response = rekognition.search_faces_by_image(
-            CollectionId='projectAI',
-            Image={'Bytes': image_binary}
-        )
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    # Procesa la respuesta de Rekognition
-    found = False
-    person_name = None
-    for match in response['FaceMatches']:
-        face_id = match['Face']['FaceId']
-        confidence = match['Face']['Confidence']
-
-        # Busca información en DynamoDB con el FaceId
-        face = dynamodb.get_item(
-            TableName='face_recognition',
-            Key={'RekognitionId': {'S': face_id}}
-        )
-
-        if 'Item' in face:
-            person_name = face['Item']['FullName']['S']
-            found = True
-
-    if found:
-        return jsonify({"message": "Hola", "name": person_name})
-    else:
-        return jsonify({"message": "Person cannot be recognized"})
+        print("Error: No se puede abrir la cámara")
+        return None
     
+    while True:
+        ret, frame = cap.read()
+
+        if not ret:
+            print("Error: No se pudo leer la imagen")
+        break
+    
+    cap.release()
+    cv2.destroyAllWindows()
+
+    # Preprocesamiento directo desde el fotograma capturado
+    print("Preprocesando la imagen...")
+    img = cv2.resize(frame, img_size)  # Redimensiona la imagen
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convierte a RGB
+    img = img / 255.0  # Escala los valores entre 0 y 1
+    img = np.expand_dims(img, axis=0)  # Añade una dimensión para el modelo
+
+    return img
+
+def predecir_imagen(modelo_path, img_preprocesada):
+    print("Cargando modelo")
+    modelo = tf.keras.models.load_model(modelo_path)
+    # Imprime el tamaño esperado de entrada
+    print("Tamaño de entrada esperado por el modelo:", modelo.input_shape)
+
+    print("Realizando predicción")
+    predicciones = modelo.predict(img_preprocesada)
+    clases = ["Kristel", "Leandro", "Raschell"]
+    clase_predicha = clases[np.argmax(predicciones)]
+    print(f"La clase predicha es: {clase_predicha}")
+
+    return clase_predicha
+
+@app.route('/recognize', methods=['POST'])
+def recognize():
+    img_preprocesada = capturar_y_preprocesar_imagen(img_size=(299, 299))
+
+    if img_preprocesada is not None:
+        ruta_modelo = '../deep_learning_models/reconocimiento_facial.keras'
+        prediccion = predecir_imagen(ruta_modelo, img_preprocesada)
+
+        # Crear un diccionario con la predicción
+        resultado = {"prediccion": prediccion}
+
+        # Convertir el diccionario a JSON y devolverlo como respuesta
+        return jsonify(resultado), 200
+
+    else:
+        # Si no se pudo procesar la imagen, devolver un error
+        return jsonify({"error": "No se pudo capturar la imagen"}), 400
+
+
+
+def preprocess_audio(file_path, target_length, fft_length):
+    # Cargar audio
+    audio, sr = librosa.load(file_path, sr=None)
+    
+    # Extraer espectrograma o MFCC (elige el que usaste)
+    spectrogram = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=fft_length, hop_length=512)
+    log_spectrogram = librosa.power_to_db(spectrogram, ref=np.max)
+    
+    # Asegurar la longitud
+    if log_spectrogram.shape[1] < target_length:
+        # Padding si es más corto
+        pad_width = target_length - log_spectrogram.shape[1]
+        log_spectrogram = np.pad(log_spectrogram, ((0, 0), (0, pad_width)), mode='constant')
+    else:
+        # Recortar si es más largo
+        log_spectrogram = log_spectrogram[:, :target_length]
+    
+    # Escalar valores
+    log_spectrogram = log_spectrogram / np.max(np.abs(log_spectrogram))
+    
+    return np.expand_dims(log_spectrogram, axis=-1)  # Expandir dimensiones para el modelo
+
+
+def CTCLoss(y_true, y_pred):
+    logit_length = tf.fill([tf.shape(y_pred)[0]], tf.shape(y_pred)[1])
+    label_length = tf.math.count_nonzero(y_true, axis=1)
+
+    loss = tf.nn.ctc_loss(
+        labels=y_true,
+        logits=y_pred,
+        label_length=label_length,
+        logit_length=logit_length,
+        blank_index=-1,
+        logits_time_major=False
+    )
+    return tf.reduce_mean(loss)
+
+# Registrar la función personalizada
+tf.keras.utils.get_custom_objects()["CTCLoss"] = CTCLoss
+
+# The set of characters accepted in the transcription.
+characters = [x for x in "abcdefghijklmnñopqrstuvwxyz'?! áéíóú"]
+
+# Mapping characters to integers
+char_to_num = keras.layers.StringLookup(vocabulary=characters, oov_token="")
+
+# Mapping integers back to original characters
+num_to_char = keras.layers.StringLookup(
+    vocabulary=char_to_num.get_vocabulary(), oov_token="", invert=True
+)
+
+def decode_predictions(predictions):
+    # Implementar tu lógica de decodificación aquí
+    # Ejemplo para greedy decoding
+    decoded_sequence = np.argmax(predictions, axis=-1)
+    decoded_text = ''.join([num_to_char[index] for index in decoded_sequence if index != ""])
+    return decoded_text
+
+#  Ruta para procesar audio
+# Ruta para procesar audio
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    model = tf.keras.models.load_model('../deep_learning_models/speech_to_text_spanish.keras')
+    audio_file = request.files['audio']
+
+    # Crear directorio 'audios' si no existe
+    os.makedirs('audios', exist_ok=True)
+        
+    # Generar un nombre único para el archivo
+    temp_filename = os.path.join('audios', f"{uuid.uuid4().hex}.wav")
+        
+    # Guardar el archivo temporalmente
+    audio_file.save(temp_filename)
+    
+    # Ruta al nuevo audio
+    new_audio_path = temp_filename
+
+    # Preprocesar el audio
+    processed_audio = preprocess_audio(new_audio_path, target_length=128, fft_length=512)
+
+    # Agregar dimensión batch (si es necesario)
+    input_data = np.expand_dims(processed_audio, axis=0)
+
+    # Realizar predicción
+    predictions = model.predict(input_data)
+
+    # Decodificar la salida (por ejemplo, CTC si usaste CTC Loss)
+    decoded_text = decode_predictions(predictions)
+    print(f'Transcripción: {decoded_text}')
+    if 'audio' not in request.files:
+        return jsonify({"error": "No se proporcionó archivo de audio"}), 400
+
+
+def decode_batch_predictions(predictions):
+    # Implementa tu decodificación aquí. Ejemplo:
+    batch_texts = []
+    for prediction in predictions:
+        text = ''.join([chr(char) for char in np.argmax(prediction, axis=-1)])
+        batch_texts.append(text)
+    return batch_texts
 
 @app.route('/aguacate_prediction', methods=['GET'])
 def aguacate_prediction():

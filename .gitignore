@@ -4,9 +4,9 @@
 /node_modules
 /.pnp
 .pnp.js
-
+/backend/reporte1
 /modelos
-
+/deep_learning_models
 /.venv
 /entorno
 

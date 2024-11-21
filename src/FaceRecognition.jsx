@@ -3,14 +3,16 @@ import { useNavigate } from "react-router-dom";
 const FaceRecognition = () => {
   const [result, setResult] = useState(null);
   const Navigate = useNavigate();
+  localStorage.removeItem('person');
   const handleRecognize = async () => {
     try {
       const response = await fetch("http://localhost:5000/recognize", {
         method: "POST",
       });
       const data = await response.json();
-      setResult(data.message + (data.name ? `: ${data.name}` : ""));
-      Navigate("/ModelSelection");
+      console.log(data);
+      localStorage.setItem('person', JSON.stringify(data.prediccion));
+      Navigate("/Options");
     } catch (error) {
       console.error("Error:", error);
       setResult("Error recognizing the face");

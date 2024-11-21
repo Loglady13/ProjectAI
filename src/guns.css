@@ -1,0 +1,95 @@
+.App {
+    text-align: center;
+  }
+  
+  .App-logo {
+    height: 40vmin;
+    pointer-events: none;
+  }
+  
+  @media (prefers-reduced-motion: no-preference) {
+    .App-logo {
+      animation: App-logo-spin infinite 20s linear;
+    }
+  }
+  
+  .App-header {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+  }
+  
+  .App-link {
+    color: #61dafb;
+  }
+  
+  @keyframes App-logo-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  Body{
+    padding: 0
+  }
+  
+  /* App.css */
+  .App {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Divide la pantalla en dos columnas iguales */
+    align-items: center; /* Centra verticalmente el contenido */
+    height: 100vh; /* Ajusta la altura al 100% de la ventana */
+  }
+  
+  .caja1 {
+    grid-column: 1; /* Establece que caja1 esté en la primera columna */
+    text-align: center; /* Alinea el texto a la derecha */
+    padding-right: 50px; 
+    padding-top: 45%;/* Añade un poco de espacio a la derecha */
+    background-color: #282c34;
+    width: 100%;
+    height: 100%;
+    color:aliceblue;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+  }
+  
+  .caja1 img{
+    width: 50px;
+  }
+  
+  .caja2 {
+    grid-column: 2; /* Establece que caja2 esté en la segunda columna */
+    text-align: left; /* Alinea el texto a la izquierda */
+    padding-left: 70px; /* Añade un poco de espacio a la izquierda */
+    background-image: linear-gradient(to top, #123254, #56134c, #4c2f67);
+    padding-top: 25%;
+    width: 100%;
+    height: 100%;
+    color: #FFF;
+  }
+  
+  .button {
+    padding: 15px 20px;
+    font-size: 16px;
+    color: #FFF; /* Color del texto */
+    background-color: transparent; /* Fondo transparente */
+    border: 2px solid #FFF; /* Borde negro de 2px */
+    border-radius: 5px;
+    cursor: pointer;
+  
+  }
+
+  .graficos{
+    margin-right: 10px;
+  }
+  
+  
+  
