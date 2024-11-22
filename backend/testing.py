@@ -21,6 +21,8 @@ import uuid
 import tempfile
 import librosa
 import numpy as np
+import pandas as pd
+from tensorflow.keras.backend import ctc_decode
 
 
 
@@ -144,10 +146,10 @@ def recognize():
 
 def preprocess_audio(file_path, target_length, fft_length):
     # Cargar audio
-    audio, sr = librosa.load(file_path, sr=None)
+    audio, sr = librosa.load(file_path, sr=44100)
     
     # Extraer espectrograma o MFCC (elige el que usaste)
-    spectrogram = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=fft_length, hop_length=512)
+    spectrogram = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=fft_length, hop_length=160, n_mels=193)
     log_spectrogram = librosa.power_to_db(spectrogram, ref=np.max)
     
     # Asegurar la longitud
@@ -160,8 +162,8 @@ def preprocess_audio(file_path, target_length, fft_length):
         log_spectrogram = log_spectrogram[:, :target_length]
     
     # Escalar valores
-    log_spectrogram = log_spectrogram / np.max(np.abs(log_spectrogram))
-    
+    epsilon = 1e-10  # Valor pequeño para evitar división por cero
+    log_spectrogram = log_spectrogram / (np.max(np.abs(log_spectrogram)) + epsilon)
     return np.expand_dims(log_spectrogram, axis=-1)  # Expandir dimensiones para el modelo
 
 
@@ -194,14 +196,139 @@ num_to_char = keras.layers.StringLookup(
 )
 
 def decode_predictions(predictions):
+    """
     # Implementar tu lógica de decodificación aquí
     # Ejemplo para greedy decoding
     decoded_sequence = np.argmax(predictions, axis=-1)
-    decoded_text = ''.join([num_to_char[index] for index in decoded_sequence if index != ""])
+    decoded_text = ''.join([num_to_char[index] for index in decoded_sequence if index != char_to_num])
     return decoded_text
+    """
+    decoded_texts = []
+    for pred in predictions:
+        # Obtener los índices con mayor probabilidad
+        decoded_sequence = np.argmax(pred, axis=-1)
+
+        # Filtrar valores inválidos (por ejemplo, espacios en blanco o índices fuera de rango)
+        decoded_sequence = [index for index in decoded_sequence if index > 0]  # Asumiendo que el espacio en blanco es 0
+
+        # Convertir índices a caracteres
+        decoded_text = ''.join([num_to_char(index).numpy().decode('utf-8') for index in decoded_sequence])
+        decoded_texts.append(decoded_text)
+    return decoded_texts
 
 #  Ruta para procesar audio
 # Ruta para procesar audio
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Definir los parámetros del espectrograma
+frame_length = 256
+frame_step = 160
+fft_length = 384
+
+def preprocess_audio1(audio_path):
+    # Leer el archivo WAV
+    file = tf.io.read_file(audio_path)
+    audio, _ = tf.audio.decode_wav(file)
+    audio = tf.squeeze(audio, axis=-1)
+    audio = tf.cast(audio, tf.float32)
+    
+    # Generar el espectrograma
+    spectrogram = tf.signal.stft(
+        audio, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length
+    )
+    spectrogram = tf.abs(spectrogram)
+    spectrogram = tf.math.pow(spectrogram, 0.5)
+    
+    # Normalizar el espectrograma
+    means = tf.math.reduce_mean(spectrogram, 1, keepdims=True)
+    stddevs = tf.math.reduce_std(spectrogram, 1, keepdims=True)
+    spectrogram = (spectrogram - means) / (stddevs + 1e-10)
+    
+    return tf.expand_dims(spectrogram, axis=0)  # Expandir para batch size
+
+def decode_predictions1(predictions, num_to_char):
+    # Calcular longitudes de entrada
+    input_len = np.ones(predictions.shape[0]) * predictions.shape[1]
+    
+    # Decodificar con CTC (elimina espacios en blanco automáticamente)
+    decoded_results = ctc_decode(predictions, input_length=input_len, greedy=True)[0][0]
+    print("Decoded Results (Raw):", decoded_results)
+
+    # Verifica si es SparseTensor o denso
+    if isinstance(decoded_results, tf.sparse.SparseTensor):
+        decoded_results = tf.sparse.to_dense(decoded_results).numpy()
+    else:
+        decoded_results = decoded_results.numpy()
+
+    # Convertir índices a caracteres
+    output_text = []
+    for result in decoded_results:
+        # Filtrar índices fuera del rango del vocabulario
+        valid_indices = result < num_to_char.vocabulary_size()
+        result = result[valid_indices]
+
+        # Convertir a texto
+        text = tf.strings.reduce_join(num_to_char(result)).numpy().decode("utf-8")
+        output_text.append(text)
+
+    return output_text
+
+import wave
+import contextlib
+
+def get_wav_details(file_path):
+    try:
+        with contextlib.closing(wave.open(file_path, 'rb')) as wav_file:
+            params = wav_file.getparams()
+            details = {
+                "Canales": params.nchannels,
+                "Frecuencia de muestreo (Hz)": params.framerate,
+                "Bits por muestra": params.sampwidth * 8,
+                "Duración (s)": params.nframes / params.framerate,
+                "Número de frames": params.nframes,
+                "Compresión": params.compname
+            }
+            return details
+    except wave.Error as e:
+        return f"Error al leer el archivo WAV: {e}"
+    except FileNotFoundError:
+        return f"Archivo no encontrado: {file_path}"
+
+
+
+@app.route('/transcribe', methods=['POST'])
+def transcribe_audio():
+    model = tf.keras.models.load_model('../deep_learning_models/speech_to_text_spanish.keras', custom_objects={"CTCLoss": CTCLoss})
+    audio_file = request.files['audio']
+
+    # Crear directorio 'audios' si no existe
+    os.makedirs('audios', exist_ok=True)
+        
+    # Generar un nombre único para el archivo
+    temp_filename = os.path.join('audios', f"{uuid.uuid4().hex}.wav")
+        
+    # Guardar el archivo temporalmente
+    audio_file.save(temp_filename)
+    
+    # Ruta al nuevo audio
+    new_audio_path = temp_filename
+    #detalles = get_wav_details(new_audio_path)
+    #print("Detalles de " + new_audio_path, detalles)
+    # Preprocesar el audio
+    processed_audio = preprocess_audio1(new_audio_path)
+
+    # Realizar predicción
+    predictions = model.predict(processed_audio)
+    print("Predicciones en bruto:", predictions)
+    predictions = tf.nn.softmax(predictions).numpy()  # Asegura salidas en [0, 1]
+    # Decodificar la salida (por ejemplo, CTC si usaste CTC Loss)
+    decoded_text = decode_predictions1(predictions, num_to_char)
+    print(f'Transcripción: {decoded_text}')
+    if 'audio' not in request.files:
+        return jsonify({"error": "No se proporcionó archivo de audio"}), 400
+
+
+"""
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():
     model = tf.keras.models.load_model('../deep_learning_models/speech_to_text_spanish.keras')
@@ -220,20 +347,21 @@ def transcribe_audio():
     new_audio_path = temp_filename
 
     # Preprocesar el audio
-    processed_audio = preprocess_audio(new_audio_path, target_length=128, fft_length=512)
-
+    processed_audio = preprocess_audio(new_audio_path, target_length=193, fft_length=384)
     # Agregar dimensión batch (si es necesario)
     input_data = np.expand_dims(processed_audio, axis=0)
 
     # Realizar predicción
     predictions = model.predict(input_data)
+    batch_predictions = decode_batch_predictions(predictions)
+    predictionsList.extend(batch_predictions)
 
     # Decodificar la salida (por ejemplo, CTC si usaste CTC Loss)
     decoded_text = decode_predictions(predictions)
     print(f'Transcripción: {decoded_text}')
     if 'audio' not in request.files:
         return jsonify({"error": "No se proporcionó archivo de audio"}), 400
-
+"""
 
 def decode_batch_predictions(predictions):
     # Implementa tu decodificación aquí. Ejemplo:
